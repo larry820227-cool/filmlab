@@ -2,12 +2,12 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#1a1c1e">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>FUJI</title>
+<title>FILM LAB v5 · 富士底片感暗房</title>
 <script>
 /*!
 
@@ -191,13 +191,38 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   .g-item canvas{width:100%;display:block}
   .g-item .g-name{font-family:var(--mono);font-size:10.5px;padding:6px 4px;color:var(--ink);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* ══ 手機分頁介面（電腦版不受影響） ══ */
+  .mobile-tabbar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:60;
+    background:var(--panel);border-top:1px solid var(--line);
+    justify-content:space-around;padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
+  .mobile-tabbar button{background:none;border:none;color:var(--ink-dim);font-family:inherit;
+    font-size:10.5px;display:flex;flex-direction:column;align-items:center;gap:2px;
+    padding:6px 14px;border-radius:10px;flex:1}
+  .mobile-tabbar button.active{color:var(--fuji-green);background:rgba(0,160,90,.12)}
+  .mobile-tabbar .ic{font-size:19px;line-height:1}
+
+  @media(max-width:940px){
+    .mobile-tabbar{display:flex}
+    .app{padding-bottom:0}
+    .panel{padding-bottom:6px}
+    .tab-panel{display:none}
+    .tab-panel.active{display:flex;flex-direction:column;gap:16px}
+    body{padding-bottom:calc(58px + env(safe-area-inset-bottom,0px))}
+    .stage{padding:14px 14px 8px}
+    canvas#cv{max-height:46vh}
+    .films{grid-template-columns:1fr 1fr}
+    .film .name{font-size:12.5px}
+    input[type=range]::-webkit-slider-thumb{width:20px;height:20px}
+    .tool-btn,.btn-mini{padding:9px 14px;font-size:13px}
+  }
 </style>
 </head>
 <body>
 
 <header>
   <div class="brand-chip">FILM LAB</div>
-  <h1>富士底片感暗房 <span style="font-family:var(--mono);font-size:11px;color:var(--ink-dim)">v5.4</span></h1>
+  <h1>富士底片感暗房 <span style="font-family:var(--mono);font-size:11px;color:var(--ink-dim)">v5.6</span></h1>
   <div class="sub">LOCAL · FRAMES · GALLERY</div>
 </header>
 
@@ -230,6 +255,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   </div>
 
   <aside class="panel">
+    <div class="tab-panel active" data-tab="film">
     <div>
       <h2>
         Film Simulation
@@ -238,7 +264,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       </h2>
       <div class="films" id="films"></div>
     </div>
-
+    </div><div class="tab-panel" data-tab="adjust">
     <div>
       <h2>構圖（裁切 / 旋轉）</h2>
       <div class="ctrl-row">
@@ -269,7 +295,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       <h2>底片質感 <button class="reset-link" data-reset="film">重設</button></h2>
       <div id="filmSliders"></div>
     </div>
-
+    </div><div class="tab-panel" data-tab="frame">
     <div>
       <h2>邊框與日期</h2>
       <div class="ctrl-row">
@@ -323,7 +349,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         <input type="text" id="dateText" placeholder="留空＝自動用照片檔案日期">
       </div>
     </div>
-
+    </div><div class="tab-panel" data-tab="adjust">
     <div>
       <h2>套用到其他照片</h2>
       <div class="btn-row">
@@ -343,14 +369,15 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         </div>
       </div>
     </details>
-
+    </div><div class="tab-panel" data-tab="export">
     <div class="btns">
       <div class="ctrl-row" style="margin-bottom:0">
         <span>輸出畫質</span>
         <select id="outQ">
-          <option value="0.98">極高（檔案較大）</option>
-          <option value="0.93" selected>高（建議）</option>
-          <option value="0.85">標準</option>
+          <option value="png">PNG（完全無損，檔案大很多）</option>
+          <option value="0.98">JPEG 極高（建議）</option>
+          <option value="0.93" selected>JPEG 高</option>
+          <option value="0.85">JPEG 標準</option>
         </select>
       </div>
       <div class="progress" id="progress"></div>
@@ -361,8 +388,16 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     </div>
 
     <div class="privacy"><b>隱私：</b>照片只在你的裝置上處理，不會上傳。</div>
+    </div>
   </aside>
 </div>
+
+<nav class="mobile-tabbar" id="mobileTabbar">
+  <button class="active" data-tab="film"><span class="ic">🎞️</span>底片</button>
+  <button data-tab="adjust"><span class="ic">🎚️</span>調整</button>
+  <button data-tab="frame"><span class="ic">🖼️</span>邊框</button>
+  <button data-tab="export"><span class="ic">⬇️</span>輸出</button>
+</nav>
 
 <!-- LUT 教學 -->
 <div class="modal-mask" id="modal">
@@ -1601,9 +1636,13 @@ function renderFullCanvas(photo){
   }
   return addFrame(work,photo.settings.deco,photos.indexOf(photo)+1);
 }
+function outFormat(){
+  const v=($('outQ')&&$('outQ').value)||'0.93';
+  return v==='png' ? {type:'image/png', q:undefined, ext:'.png'} : {type:'image/jpeg', q:parseFloat(v), ext:'.jpg'};
+}
 function canvasToBlob(canvas){
-  const q=parseFloat(($('outQ')&&$('outQ').value)||'0.93');
-  return new Promise((res,rej)=>canvas.toBlob(b=>b?res(b):rej(new Error('影像編碼失敗')),'image/jpeg',q));
+  const f=outFormat();
+  return new Promise((res,rej)=>canvas.toBlob(b=>b?res(b):rej(new Error('影像編碼失敗')), f.type, f.q));
 }
 function triggerDownload(blob,filename){
   const url=URL.createObjectURL(blob);
@@ -1617,7 +1656,7 @@ function outName(photo,i){
   const st=photo.settings;
   const f=findFilm(st.filmId);
   const tag=st.opts.strength===0?'original':(f?f.id:'x');
-  return `filmlab_${tag}_${String(i+1).padStart(2,'0')}_${photo.name.replace(/\.[^.]+$/,'')}.jpg`;
+  return `filmlab_${tag}_${String(i+1).padStart(2,'0')}_${photo.name.replace(/\.[^.]+$/,'')}${outFormat().ext}`;
 }
 
 dlOne.onclick=async()=>{
@@ -1673,8 +1712,57 @@ dlAll.onclick=async()=>{
   dlAll.disabled=false;dlOne.disabled=false;
 };
 
+/* ── 手機分頁切換 ── */
+function initMobileTabs(){
+  const bar=$('mobileTabbar');
+  if(!bar)return;
+  bar.querySelectorAll('button').forEach(btn=>{
+    btn.onclick=()=>{
+      const tab=btn.dataset.tab;
+      document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.dataset.tab===tab));
+      bar.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b===btn));
+      if(window.innerWidth<=940){
+        const panel=document.querySelector('.panel');
+        if(panel)panel.scrollIntoView({block:'start',behavior:'smooth'});
+      }
+    };
+  });
+}
+
+/* 自動讀取使用者自己放在 repo「luts/」資料夾裡的 .cube（需搭配 luts/manifest.json 檔名清單） */
+async function autoLoadLuts(){
+  try{
+    const res=await fetch('luts/manifest.json');
+    if(!res.ok)return;
+    const list=await res.json();
+    let added=0;
+    for(const fname of list){
+      try{
+        const r2=await fetch('luts/'+fname);
+        if(!r2.ok)continue;
+        const text=await r2.text();
+        const parsed=parseCube(text);
+        const name=fname.replace(/\.cube$/i,'');
+        const id='lut_auto_'+name.replace(/[^\w-]+/g,'_');
+        if(LUTS.find(l=>l.id===id))continue;
+        let uniqName=name,n=2;
+        while(LUTS.find(l=>l.name===uniqName)){uniqName=`${name} (${n++})`;}
+        const mode=detectLutMode(parsed);
+        LUTS.push({type:'lut', id, name:uniqName,
+          desc: mode==='flog2'?'F-Log2 官方 LUT':'一般 LUT',
+          stripe:'#8b6fc9', data:parsed.data, size:parsed.size, mode,
+          sliders:{ grain:20, vig:10 }});
+        added++;
+      }catch(e){ console.warn('自動載入 LUT 失敗：',fname,e); }
+    }
+    if(added){ renderFilms(); flashProgress(`已自動載入 ${added} 支 LUT ✔`); }
+  }catch(e){ /* 沒有 luts 資料夾就安靜略過，不影響一般使用 */ }
+}
+
 /* 初始化 */
 renderFilms();
+initMobileTabs();
+autoLoadLuts();
 </script>
 <script>
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
