@@ -1,6 +1,6 @@
 {
-  "name": "FILM LAB 富士底片感暗房",
-  "short_name": "FILM LAB",
+  "name": "FUJI",
+  "short_name": "FUJI",
   "description": "免費的富士底片感照片調色工具，全本地運算",
   "start_url": "./",
   "scope": "./",
