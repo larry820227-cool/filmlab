@@ -218,20 +218,27 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     .app{padding-bottom:0;grid-template-columns:1fr}
     body{padding-bottom:calc(66px + env(safe-area-inset-bottom,0px))}
 
-    /* ★★ 預覽固定在頂端 ★★ */
+    /* ★★ 預覽固定在頂端，緊湊尺寸 ★★ */
     .stage{
       position:sticky;top:0;z-index:20;
-      padding:10px 12px 8px;
+      padding:6px 10px 4px;
       background:linear-gradient(180deg,#fffdf7 0%,#fdf6ec 90%);
       border-bottom:1px solid var(--line);
       box-shadow:0 4px 14px rgba(180,120,60,.06);
     }
-    canvas#cv{max-height:38vh}
-    #canvasWrap .hint,.stage-tools{display:none}    /* 手機不顯示這些減少高度 */
-    .filmstrip{margin-top:8px;padding:6px 6px}
-    .thumb{width:64px;height:50px;margin:0 3px}
-    .thumb-add{width:64px;height:50px;margin:0 3px}
-    .strip-tools{margin-top:4px}
+    canvas#cv{max-height:28vh}
+    #canvasWrap .hint,.stage-tools{display:none}
+    .filmstrip{margin-top:4px;padding:4px 4px}
+    .thumb{width:48px;height:38px;margin:0 3px;border-radius:8px}
+    .thumb-add{width:48px;height:38px;margin:0 3px}
+    .thumb .tag{height:14px;line-height:12px;font-size:7.5px}
+    .thumb .ck{width:14px;height:14px}
+    .thumb .rm{width:14px;height:14px;line-height:12px;font-size:9px}
+    .strip-tools{display:none}   /* 手機不顯示全選/全不選文字，省高度 */
+
+    /* Drop 區在手機也壓小 */
+    .drop{padding:36px 20px}
+    .drop .big{font-size:30px;margin-bottom:8px}
 
     /* 控制項面板：可獨立捲動，照片不會消失 */
     .panel{border-left:none;border-top:1px solid var(--line);
@@ -274,7 +281,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
 <header>
   <div class="brand-chip">FILM LAB</div>
-  <h1>富士底片感暗房 <span style="font-family:var(--mono);font-size:11px;color:var(--ink-dim)">v5.7</span></h1>
+  <h1>富士底片感暗房 <span style="font-family:var(--mono);font-size:11px;color:var(--ink-dim)">v5.7.1</span></h1>
   <div class="sub">LOCAL · FRAMES · GALLERY</div>
 </header>
 
@@ -601,11 +608,14 @@ function buildSliders(defs, containerId){
     box.appendChild(row);
     const el=row.querySelector('input');
     sliderEls[s.id]={el,unit:s.unit||''};
-    el.addEventListener('input',()=>{
+    el.style.touchAction='pan-y';   /* 確保觸控被滑桿吃到 */
+    const onSliderChange=()=>{
       $('v_'+s.id).textContent=el.value+(s.unit||'');
       curSettings().opts[s.id]=+el.value;
       queueRender(); updateCode(); updateStripBadges();
-    });
+    };
+    el.addEventListener('input', onSliderChange);
+    el.addEventListener('change', onSliderChange);   /* iOS Safari 備援 */
     const dice=row.querySelector('.dice');
     if(dice)dice.onclick=()=>{
       const p=cur(); if(!p)return;
@@ -657,12 +667,15 @@ $('cropAspect').addEventListener('change',()=>{
   curSettings().crop.aspect=$('cropAspect').value;
   refreshCurrentSource(); queueRender();
 });
-$('s_cropAngle').addEventListener('input',()=>{
+const onCropAngle=()=>{
   const v=+$('s_cropAngle').value;
   $('v_cropAngle').textContent=v+'°';
   curSettings().crop.angle=v;
   refreshCurrentSource(); queueRender();
-});
+};
+$('s_cropAngle').addEventListener('input',onCropAngle);
+$('s_cropAngle').addEventListener('change',onCropAngle);
+$('s_cropAngle').style.touchAction='pan-y';
 $('rot90Btn').onclick=()=>{
   const c=curSettings().crop;
   c.rot90=(c.rot90+1)%4;
@@ -1550,7 +1563,11 @@ function queueRender(){
   requestAnimationFrame(()=>{renderQueued=false;render();});
 }
 function render(){
-  const p=cur(); if(!p||!previewOriginal)return;
+  const p=cur();
+  if(!p||!previewOriginal){
+    // 沒照片或預覽未就緒
+    return;
+  }
   const out=pipeline(previewOriginal,p.settings,p.seed,!compareOn);
   cv.width=out.width;cv.height=out.height;
   ctx.drawImage(out,0,0);
