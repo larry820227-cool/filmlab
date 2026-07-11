@@ -552,12 +552,16 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       </div>
       <div class="progress" id="progress"></div>
       <div class="err" id="errBox"></div>
-      <button class="btn btn-primary" id="dlOne" disabled>下載目前這張</button>
+      <button class="btn btn-primary" id="dlOne" disabled>💾 下載目前這張</button>
+      <button class="btn btn-second" id="shareOne" disabled>📤 分享 / 存到相簿</button>
       <button class="btn btn-second" id="dlAll" disabled>全部輸出 → 打包 ZIP</button>
       <button class="btn btn-ghost" id="addMore">加入更多照片</button>
     </div>
 
-    <div class="privacy"><b>隱私：</b>照片只在你的裝置上處理，不會上傳。</div>
+    <div class="privacy">
+      <b>📤 存到 iPhone 相簿：</b>按「分享」→ 選「儲存影像」，一步到相簿。<br>
+      <b>隱私：</b>照片只在你的裝置上處理，不會上傳。
+    </div>
     </div>
   </aside>
 </div>
@@ -1665,6 +1669,7 @@ function rebuildStrip(){
   strip.style.display=has?'block':'none';
   stripTools.style.display=has?'flex':'none';
   dlAll.disabled=!has;
+  if($('shareOne'))$('shareOne').disabled=!has;
   $('applyChecked').disabled=!has;
   $('applyAll').disabled=!has;
   dlAll.textContent=`全部輸出 → 打包 ZIP（${photos.length} 張）`;
@@ -1687,14 +1692,14 @@ $('ckNone').onclick=()=>{photos.forEach(p=>p.checked=false);rebuildStrip();};
 function removePhoto(i){
   URL.revokeObjectURL(photos[i].url);
   photos.splice(i,1);
-  if(!photos.length){currentIdx=-1;wrap.style.display='none';drop.style.display='block';dlOne.disabled=true;rebuildStrip();return;}
+  if(!photos.length){currentIdx=-1;wrap.style.display='none';drop.style.display='block';dlOne.disabled=true;if($('shareOne'))$('shareOne').disabled=true;rebuildStrip();return;}
   if(currentIdx>=photos.length)currentIdx=photos.length-1;
   selectPhoto(Math.min(currentIdx,photos.length-1));
 }
 function selectPhoto(i){
   currentIdx=i;
   refreshCurrentSource();
-  drop.style.display='none';wrap.style.display='block';dlOne.disabled=false;
+  drop.style.display='none';wrap.style.display='block';dlOne.disabled=false;if($('shareOne'))$('shareOne').disabled=false;
   loadSettingsToPanel(photos[i].settings);
   rebuildStrip();render();updateTopBar();
 }
@@ -1914,7 +1919,30 @@ dlOne.onclick=async()=>{
     if(isNoOp(p.settings)){ triggerDownload(p.file,p.name); }
     else{ triggerDownload(await canvasToBlob(renderFullCanvas(p)),outName(p,currentIdx)); }
   }catch(err){showErr('下載失敗：'+err.message);}
-  dlOne.textContent='下載目前這張';dlOne.disabled=false;
+  dlOne.textContent='💾 下載目前這張';dlOne.disabled=false;
+};
+
+/* ── 分享（iOS 上可存到相簿） ── */
+const shareOne=$('shareOne');
+shareOne.onclick=async()=>{
+  if(currentIdx<0)return;
+  shareOne.disabled=true;shareOne.textContent='處理中…';
+  try{
+    await new Promise(r=>setTimeout(r,30));
+    const p=photos[currentIdx];
+    const blob = isNoOp(p.settings) ? p.file : await canvasToBlob(renderFullCanvas(p));
+    const name = isNoOp(p.settings) ? p.name : outName(p,currentIdx);
+    const file = new File([blob], name, {type: blob.type||'image/jpeg'});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], title:'FILM LAB'});
+    }else{
+      triggerDownload(blob, name);
+      flashProgress('這個瀏覽器不支援直接分享，已改為下載');
+    }
+  }catch(err){
+    if(err.name!=='AbortError') showErr('分享失敗：'+err.message);
+  }
+  shareOne.textContent='📤 分享 / 存到相簿';shareOne.disabled=false;
 };
 dlAll.onclick=async()=>{
   if(!photos.length)return;
