@@ -297,7 +297,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       border-top:1.5px dashed var(--line);border-left:none;border-right:none;border-bottom:none;
       border-radius:18px 18px 0 0;
       padding:12px 16px 14px;
-      max-height:min(46vh,430px);overflow-y:auto;
+      max-height:min(42vh,380px);overflow-y:auto;
       box-shadow:0 -6px 24px rgba(150,105,55,.15);
       animation:slideUp .2s ease-out;
     }
@@ -373,6 +373,12 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     .modal{max-height:88vh;border-radius:18px 18px 0 0;padding:20px 18px 26px;max-width:none}
     .modal.wide{max-width:none}
   }
+
+  /* 調整面板次要功能 */
+  .m-minor{border:1.5px dashed var(--line);border-radius:12px;background:transparent;margin-top:6px}
+  .m-minor summary{padding:7px 12px;font-size:11px;color:var(--ink-dim);letter-spacing:.06em;cursor:pointer}
+  .m-minor .inner{padding:6px 10px 8px}
+  .m-compact .btn{font-size:11px !important;padding:6px 8px !important}
 </style>
 </head>
 <body>
@@ -460,11 +466,10 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       <h2>底片質感 <button class="reset-link" data-reset="film">重設</button></h2>
       <div id="filmSliders"></div>
     </div>
-    <div class="btn-row" style="margin-top:2px">
-      <button class="btn btn-second btn-mini" id="saveDefBtn">⭐ 存成此濾鏡預設</button>
-      <button class="btn btn-ghost btn-mini" id="resetDefBtn">還原原廠</button>
+    <div class="btn-row m-compact" style="margin-top:2px">
+      <button class="btn btn-second btn-mini" id="saveDefBtn" style="font-size:11px;padding:6px 8px">⭐ 存預設</button>
+      <button class="btn btn-ghost btn-mini" id="resetDefBtn" style="font-size:11px;padding:6px 8px">還原</button>
     </div>
-    <div class="note">存檔後，之後每次選這個濾鏡都會直接套用你調好的參數（存在這台裝置的瀏覽器裡）。</div>
     </div><div class="tab-panel" data-tab="frame">
     <div>
       <h2>邊框與日期</h2>
@@ -519,23 +524,17 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         <input type="text" id="dateText" placeholder="留空＝自動用照片檔案日期">
       </div>
     </div>
-    </div><div class="tab-panel" data-tab="adjust">
-    <div>
-      <h2>套用到其他照片</h2>
-      <div class="btn-row">
-        <button class="btn btn-second btn-mini" id="applyChecked" disabled>套用到勾選 ☑</button>
-        <button class="btn btn-second btn-mini" id="applyAll" disabled>套用到全部</button>
-      </div>
-      <div class="note">會複製「濾鏡＋滑桿＋邊框日期」設定，構圖不會被複製。</div>
-    </div>
-
-    <details>
-      <summary>設定碼（儲存 / 分享配方）</summary>
+    <details class="m-minor">
+      <summary>套用 / 設定碼</summary>
       <div class="inner">
-        <textarea id="codeBox" spellcheck="false"></textarea>
-        <div class="btn-row" style="margin-top:8px">
-          <button class="btn btn-second btn-mini" id="copyCode">複製</button>
-          <button class="btn btn-second btn-mini" id="applyCode">套用到這張</button>
+        <div class="btn-row" style="margin-bottom:6px">
+          <button class="btn btn-second btn-mini" id="applyChecked" disabled style="font-size:11px;padding:6px 8px">套用勾選 ☑</button>
+          <button class="btn btn-second btn-mini" id="applyAll" disabled style="font-size:11px;padding:6px 8px">套用全部</button>
+        </div>
+        <textarea id="codeBox" spellcheck="false" style="height:44px;font-size:10px"></textarea>
+        <div class="btn-row" style="margin-top:4px">
+          <button class="btn btn-second btn-mini" id="copyCode" style="font-size:11px;padding:6px 8px">複製</button>
+          <button class="btn btn-second btn-mini" id="applyCode" style="font-size:11px;padding:6px 8px">套用</button>
         </div>
       </div>
     </details>
